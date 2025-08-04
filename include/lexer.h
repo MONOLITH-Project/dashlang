@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2025, Ibrahim KAIKAA <ibrahimkaikaa@gmail.com>
+ * SPDX-License-Identifier: GPL-3.0
+ */
+
+#ifndef _LEXER_H
+#define _LEXER_H
+
+#include <bits/stdint-uintn.h>
+#include <stddef.h>
+
+typedef struct
+{
+    char *source;
+    size_t line;
+    size_t column;
+    size_t position;
+} lexer_t;
+
+typedef enum : uint8_t {
+    TOKEN_EOF = 0,
+    TOKEN_BREAK,
+    TOKEN_CONTINUE,
+    TOKEN_FALL,
+    TOKEN_FN,
+    TOKEN_FOR,
+    TOKEN_IF,
+    TOKEN_LET,
+    TOKEN_RETURN,
+    TOKEN_SWITCH,
+    TOKEN_UNION,
+    TOKEN_IDENTIFIER,
+    TOKEN_INTEGER,
+    TOKEN_STRING,
+} token_type_t;
+
+typedef struct
+{
+    char value[16];
+    token_type_t type;
+    size_t line;
+    size_t column;
+} token_t;
+
+lexer_t lexer_init(char *source);
+token_t lexer_next(lexer_t *lexer);
+token_t lexer_peek(lexer_t *lexer);
+token_t lexer_prev(lexer_t *lexer);
+
+#endif
