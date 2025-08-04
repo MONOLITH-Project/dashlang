@@ -26,6 +26,10 @@ static token_type_t _classify_token(char *token)
         return TOKEN_FN;
     else if (!strcmp(token, "for"))
         return TOKEN_FOR;
+    else if (!strcmp(token, "i16"))
+        return TOKEN_I16;
+    else if (!strcmp(token, "i8"))
+        return TOKEN_I8;
     else if (!strcmp(token, "if"))
         return TOKEN_IF;
     else if (!strcmp(token, "let"))
@@ -34,6 +38,10 @@ static token_type_t _classify_token(char *token)
         return TOKEN_RETURN;
     else if (!strcmp(token, "switch"))
         return TOKEN_SWITCH;
+    else if (!strcmp(token, "u16"))
+        return TOKEN_U16;
+    else if (!strcmp(token, "u8"))
+        return TOKEN_U8;
     else if (!strcmp(token, "union"))
         return TOKEN_UNION;
 
