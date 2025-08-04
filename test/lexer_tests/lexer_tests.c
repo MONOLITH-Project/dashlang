@@ -50,10 +50,10 @@ void lex_keywords(void)
         (token_t) {.value = "return", .type = TOKEN_RETURN, .line = 1, .column = 42},
         (token_t) {.value = "struct", .type = TOKEN_STRUCT, .line = 1, .column = 49},
         (token_t) {.value = "switch", .type = TOKEN_SWITCH, .line = 1, .column = 56},
-        (token_t) {.value = "u16", .type = TOKEN_U16, .line = 1, .column = 60},
-        (token_t) {.value = "u8", .type = TOKEN_U8, .line = 1, .column = 64},
-        (token_t) {.value = "union", .type = TOKEN_UNION, .line = 1, .column = 69},
-        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 73});
+        (token_t) {.value = "u16", .type = TOKEN_U16, .line = 1, .column = 63},
+        (token_t) {.value = "u8", .type = TOKEN_U8, .line = 1, .column = 67},
+        (token_t) {.value = "union", .type = TOKEN_UNION, .line = 1, .column = 70},
+        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 75});
     lex_all(&lexer, &actual_list);
     COMPARE_TOKEN_LISTS(expected_list, actual_list);
 }
@@ -66,7 +66,7 @@ void lex_unsigned_integers(void)
         (token_t) {.value = "123", .type = TOKEN_INTEGER, .line = 1, .column = 1},
         (token_t) {.value = "456", .type = TOKEN_INTEGER, .line = 1, .column = 5},
         (token_t) {.value = "789", .type = TOKEN_INTEGER, .line = 1, .column = 9},
-        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 13});
+        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 12});
     lex_all(&lexer, &actual_list);
     COMPARE_TOKEN_LISTS(expected_list, actual_list);
 }
@@ -86,19 +86,19 @@ void lex_operators(void)
         (token_t) {.value = "<", .type = TOKEN_LESS_THAN, .line = 1, .column = 17},
         (token_t) {.value = ">", .type = TOKEN_GREATER_THAN, .line = 1, .column = 19},
         (token_t) {.value = "<=", .type = TOKEN_LESS_EQUAL, .line = 1, .column = 21},
-        (token_t) {.value = ">=", .type = TOKEN_GREATER_EQUAL, .line = 1, .column = 23},
-        (token_t) {.value = "!", .type = TOKEN_NOT, .line = 1, .column = 25},
-        (token_t) {.value = ";", .type = TOKEN_SEMICOLON, .line = 1, .column = 27},
-        (token_t) {.value = ":", .type = TOKEN_COLON, .line = 1, .column = 29},
-        (token_t) {.value = ".", .type = TOKEN_DOT, .line = 1, .column = 31},
-        (token_t) {.value = ",", .type = TOKEN_COMMA, .line = 1, .column = 33},
-        (token_t) {.value = "(", .type = TOKEN_LEFT_PAREN, .line = 1, .column = 35},
-        (token_t) {.value = ")", .type = TOKEN_RIGHT_PAREN, .line = 1, .column = 37},
-        (token_t) {.value = "[", .type = TOKEN_LEFT_BRACKET, .line = 1, .column = 39},
-        (token_t) {.value = "]", .type = TOKEN_RIGHT_BRACKET, .line = 1, .column = 41},
-        (token_t) {.value = "{", .type = TOKEN_LEFT_BRACE, .line = 1, .column = 43},
-        (token_t) {.value = "}", .type = TOKEN_RIGHT_BRACE, .line = 1, .column = 45},
-        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 47});
+        (token_t) {.value = ">=", .type = TOKEN_GREATER_EQUAL, .line = 1, .column = 24},
+        (token_t) {.value = "!", .type = TOKEN_NOT, .line = 1, .column = 27},
+        (token_t) {.value = ";", .type = TOKEN_SEMICOLON, .line = 1, .column = 29},
+        (token_t) {.value = ":", .type = TOKEN_COLON, .line = 1, .column = 31},
+        (token_t) {.value = ".", .type = TOKEN_DOT, .line = 1, .column = 33},
+        (token_t) {.value = ",", .type = TOKEN_COMMA, .line = 1, .column = 35},
+        (token_t) {.value = "(", .type = TOKEN_LEFT_PAREN, .line = 1, .column = 37},
+        (token_t) {.value = ")", .type = TOKEN_RIGHT_PAREN, .line = 1, .column = 39},
+        (token_t) {.value = "[", .type = TOKEN_LEFT_BRACKET, .line = 1, .column = 41},
+        (token_t) {.value = "]", .type = TOKEN_RIGHT_BRACKET, .line = 1, .column = 43},
+        (token_t) {.value = "{", .type = TOKEN_LEFT_BRACE, .line = 1, .column = 45},
+        (token_t) {.value = "}", .type = TOKEN_RIGHT_BRACE, .line = 1, .column = 47},
+        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 48});
     lex_all(&lexer, &actual_list);
     COMPARE_TOKEN_LISTS(expected_list, actual_list);
 }

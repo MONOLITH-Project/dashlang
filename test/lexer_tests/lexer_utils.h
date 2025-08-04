@@ -74,5 +74,7 @@ void lex_all(lexer_t *lexer, test_token_list_t *list)
         for (i = 0; i < (expected).size; i++) { \
             TEST_ASSERT_EQUAL((expected).list[i].type, (actual).list[i].type); \
             TEST_ASSERT_EQUAL_STRING((expected).list[i].value, (actual).list[i].value); \
+            TEST_ASSERT_EQUAL((expected).list[i].line, (actual).list[i].line); \
+            TEST_ASSERT_EQUAL((expected).list[i].column, (actual).list[i].column); \
         } \
     } while (0)

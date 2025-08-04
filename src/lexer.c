@@ -81,11 +81,12 @@ static bool _is_digit(char c)
     (token_t) \
     { \
         .type = ttype, .value = ttoken, .line = lexer->line, .column = lexer->column, \
-    }
+    }; \
+    lexer->column += strlen(ttoken)
 
 #define ONECHAR_TOKEN_CASE(ttoken, ttype) \
     case ttoken: \
-        token = (token_t) {.type = ttype, .line = lexer->line, .column = lexer->column}; \
+        token = (token_t) {.type = ttype, .line = lexer->line, .column = lexer->column++}; \
         token.value[0] = ttoken; \
         token.value[1] = '\0'; \
         lexer->position++; \
