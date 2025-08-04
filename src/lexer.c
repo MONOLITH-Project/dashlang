@@ -36,6 +36,8 @@ static token_type_t _classify_token(char *token)
         return TOKEN_LET;
     else if (!strcmp(token, "return"))
         return TOKEN_RETURN;
+    else if (!strcmp(token, "struct"))
+        return TOKEN_STRUCT;
     else if (!strcmp(token, "switch"))
         return TOKEN_SWITCH;
     else if (!strcmp(token, "u16"))
@@ -51,7 +53,8 @@ static token_type_t _classify_token(char *token)
 static bool _is_operator(char c)
 {
     return c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '!' || c == '<'
-           || c == '>';
+           || c == '>' || c == '.' || c == '!' || c == ';' || c == ':' || c == ',' || c == '('
+           || c == ')' || c == '{' || c == '}' || c == '[' || c == ']';
 }
 
 static bool _is_separator(char c)
@@ -79,6 +82,14 @@ static bool _is_digit(char c)
     { \
         .type = ttype, .value = ttoken, .line = lexer->line, .column = lexer->column, \
     }
+
+#define ONECHAR_TOKEN_CASE(ttoken, ttype) \
+    case ttoken: \
+        token = (token_t) {.type = ttype, .line = lexer->line, .column = lexer->column}; \
+        token.value[0] = ttoken; \
+        token.value[1] = '\0'; \
+        lexer->position++; \
+        break
 
 token_t lexer_next(lexer_t *lexer)
 {
@@ -138,22 +149,20 @@ skip_whitespace:
     }
 
     switch (lexer->source[lexer->position]) {
-    case '+':
-        token = TOKEN("+", TOKEN_PLUS);
-        lexer->position++;
-        break;
-    case '-':
-        token = TOKEN("-", TOKEN_MINUS);
-        lexer->position++;
-        break;
-    case '*':
-        token = TOKEN("*", TOKEN_STAR);
-        lexer->position++;
-        break;
-    case '/':
-        token = TOKEN("/", TOKEN_SLASH);
-        lexer->position++;
-        break;
+        ONECHAR_TOKEN_CASE('+', TOKEN_PLUS);
+        ONECHAR_TOKEN_CASE('-', TOKEN_MINUS);
+        ONECHAR_TOKEN_CASE('*', TOKEN_STAR);
+        ONECHAR_TOKEN_CASE('/', TOKEN_SLASH);
+        ONECHAR_TOKEN_CASE(';', TOKEN_SEMICOLON);
+        ONECHAR_TOKEN_CASE(':', TOKEN_COLON);
+        ONECHAR_TOKEN_CASE('.', TOKEN_DOT);
+        ONECHAR_TOKEN_CASE(',', TOKEN_COMMA);
+        ONECHAR_TOKEN_CASE('(', TOKEN_LEFT_PAREN);
+        ONECHAR_TOKEN_CASE(')', TOKEN_RIGHT_PAREN);
+        ONECHAR_TOKEN_CASE('[', TOKEN_LEFT_BRACKET);
+        ONECHAR_TOKEN_CASE(']', TOKEN_RIGHT_BRACKET);
+        ONECHAR_TOKEN_CASE('{', TOKEN_LEFT_BRACE);
+        ONECHAR_TOKEN_CASE('}', TOKEN_RIGHT_BRACE);
     case '=':
         if (lexer->source[lexer->position + 1] == '=') {
             token = TOKEN("==", TOKEN_EQUAL_EQUAL);
@@ -189,6 +198,14 @@ skip_whitespace:
             token = TOKEN("<", TOKEN_LESS_THAN);
             lexer->position++;
         }
+        break;
+    default:
+        token.value[0] = lexer->source[lexer->position];
+        token.value[1] = '\0';
+        token.type = TOKEN_INVALID;
+        token.line = lexer->line;
+        token.column = lexer->column;
+        lexer->position++;
         break;
     }
 

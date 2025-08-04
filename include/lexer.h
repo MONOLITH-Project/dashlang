@@ -17,7 +17,8 @@ typedef struct
     size_t position;
 } lexer_t;
 
-typedef enum : uint8_t {
+typedef enum {
+    TOKEN_INVALID = -1,
     TOKEN_EOF = 0,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
@@ -29,6 +30,7 @@ typedef enum : uint8_t {
     TOKEN_IF,
     TOKEN_LET,
     TOKEN_RETURN,
+    TOKEN_STRUCT,
     TOKEN_SWITCH,
     TOKEN_U16,
     TOKEN_U8,
@@ -48,14 +50,24 @@ typedef enum : uint8_t {
     TOKEN_LESS_EQUAL,
     TOKEN_GREATER_EQUAL,
     TOKEN_NOT,
+    TOKEN_SEMICOLON,
+    TOKEN_COLON,
+    TOKEN_DOT,
+    TOKEN_COMMA,
+    TOKEN_LEFT_PAREN,
+    TOKEN_RIGHT_PAREN,
+    TOKEN_LEFT_BRACKET,
+    TOKEN_RIGHT_BRACKET,
+    TOKEN_LEFT_BRACE,
+    TOKEN_RIGHT_BRACE
 } token_type_t;
 
 typedef struct
 {
     char value[16];
-    token_type_t type;
     size_t line;
     size_t column;
+    token_type_t type;
 } token_t;
 
 lexer_t lexer_init(char *source);
