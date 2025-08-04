@@ -34,7 +34,8 @@ void lex_empty_string(void)
 
 void lex_keywords(void)
 {
-    lexer_t lexer = lexer_init("break continue fall fn for i16 i8 if let return switch u16 u8 union");
+    lexer_t lexer = lexer_init(
+        "break continue fall fn for i16 i8 if let return switch u16 u8 union");
     init_token_list(
         &expected_list,
         (token_t) {.value = "break", .type = TOKEN_BREAK, .line = 1, .column = 1},
@@ -69,12 +70,49 @@ void lex_unsigned_integers(void)
     COMPARE_TOKEN_LISTS(expected_list, actual_list);
 }
 
+void lex_operators(void)
+{
+    lexer_t lexer = lexer_init("+ - * / = == != < > <= >= !");
+    init_token_list(
+        &expected_list,
+        (token_t) {.value = "+", .type = TOKEN_PLUS, .line = 1, .column = 1},
+        (token_t) {.value = "-", .type = TOKEN_MINUS, .line = 1, .column = 3},
+        (token_t) {.value = "*", .type = TOKEN_STAR, .line = 1, .column = 5},
+        (token_t) {.value = "/", .type = TOKEN_SLASH, .line = 1, .column = 7},
+        (token_t) {.value = "=", .type = TOKEN_EQUAL, .line = 1, .column = 9},
+        (token_t) {.value = "==", .type = TOKEN_EQUAL_EQUAL, .line = 1, .column = 11},
+        (token_t) {.value = "!=", .type = TOKEN_NOT_EQUAL, .line = 1, .column = 14},
+        (token_t) {.value = "<", .type = TOKEN_LESS_THAN, .line = 1, .column = 17},
+        (token_t) {.value = ">", .type = TOKEN_GREATER_THAN, .line = 1, .column = 19},
+        (token_t) {.value = "<=", .type = TOKEN_LESS_EQUAL, .line = 1, .column = 21},
+        (token_t) {.value = ">=", .type = TOKEN_GREATER_EQUAL, .line = 1, .column = 23},
+        (token_t) {.value = "!", .type = TOKEN_NOT, .line = 1, .column = 25},
+        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 27});
+    lex_all(&lexer, &actual_list);
+    COMPARE_TOKEN_LISTS(expected_list, actual_list);
+}
+
+void lex_separate_with_operators(void)
+{
+    lexer_t lexer = lexer_init("abc=xyz");
+    init_token_list(
+        &expected_list,
+        (token_t) {.value = "abc", .type = TOKEN_IDENTIFIER, .line = 1, .column = 1},
+        (token_t) {.value = "=", .type = TOKEN_EQUAL, .line = 1, .column = 4},
+        (token_t) {.value = "xyz", .type = TOKEN_IDENTIFIER, .line = 1, .column = 5},
+        (token_t) {.value = "", .type = TOKEN_EOF, .line = 1, .column = 8});
+    lex_all(&lexer, &actual_list);
+    COMPARE_TOKEN_LISTS(expected_list, actual_list);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
     RUN_TEST(lex_empty_string);
     RUN_TEST(lex_keywords);
     RUN_TEST(lex_unsigned_integers);
+    RUN_TEST(lex_operators);
+    RUN_TEST(lex_separate_with_operators);
     destroy_token_list(&actual_list);
     destroy_token_list(&expected_list);
     return UNITY_END();

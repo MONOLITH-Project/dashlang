@@ -36,6 +36,18 @@ typedef enum : uint8_t {
     TOKEN_IDENTIFIER,
     TOKEN_INTEGER,
     TOKEN_STRING,
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
+    TOKEN_EQUAL,
+    TOKEN_EQUAL_EQUAL,
+    TOKEN_NOT_EQUAL,
+    TOKEN_LESS_THAN,
+    TOKEN_GREATER_THAN,
+    TOKEN_LESS_EQUAL,
+    TOKEN_GREATER_EQUAL,
+    TOKEN_NOT,
 } token_type_t;
 
 typedef struct

@@ -48,9 +48,15 @@ static token_type_t _classify_token(char *token)
     return TOKEN_IDENTIFIER;
 }
 
+static bool _is_operator(char c)
+{
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '!' || c == '<'
+           || c == '>';
+}
+
 static bool _is_separator(char c)
 {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\0';
+    return c == ' ' || c == '\t' || c == '\n' || c == '\0' || _is_operator(c);
 }
 
 static bool _is_whitespace(char c)
@@ -67,6 +73,12 @@ static bool _is_digit(char c)
 {
     return c >= '0' && c <= '9';
 }
+
+#define TOKEN(ttoken, ttype) \
+    (token_t) \
+    { \
+        .type = ttype, .value = ttoken, .line = lexer->line, .column = lexer->column, \
+    }
 
 token_t lexer_next(lexer_t *lexer)
 {
@@ -123,6 +135,61 @@ skip_whitespace:
         token.line = lexer->line;
         token.column = lexer->column - i;
         return token;
+    }
+
+    switch (lexer->source[lexer->position]) {
+    case '+':
+        token = TOKEN("+", TOKEN_PLUS);
+        lexer->position++;
+        break;
+    case '-':
+        token = TOKEN("-", TOKEN_MINUS);
+        lexer->position++;
+        break;
+    case '*':
+        token = TOKEN("*", TOKEN_STAR);
+        lexer->position++;
+        break;
+    case '/':
+        token = TOKEN("/", TOKEN_SLASH);
+        lexer->position++;
+        break;
+    case '=':
+        if (lexer->source[lexer->position + 1] == '=') {
+            token = TOKEN("==", TOKEN_EQUAL_EQUAL);
+            lexer->position += 2;
+        } else {
+            token = TOKEN("=", TOKEN_EQUAL);
+            lexer->position++;
+        }
+        break;
+    case '!':
+        if (lexer->source[lexer->position + 1] == '=') {
+            token = TOKEN("!=", TOKEN_NOT_EQUAL);
+            lexer->position += 2;
+        } else {
+            token = TOKEN("!", TOKEN_NOT);
+            lexer->position++;
+        }
+        break;
+    case '>':
+        if (lexer->source[lexer->position + 1] == '=') {
+            token = TOKEN(">=", TOKEN_GREATER_EQUAL);
+            lexer->position += 2;
+        } else {
+            token = TOKEN(">", TOKEN_GREATER_THAN);
+            lexer->position++;
+        }
+        break;
+    case '<':
+        if (lexer->source[lexer->position + 1] == '=') {
+            token = TOKEN("<=", TOKEN_LESS_EQUAL);
+            lexer->position += 2;
+        } else {
+            token = TOKEN("<", TOKEN_LESS_THAN);
+            lexer->position++;
+        }
+        break;
     }
 
     return token;
