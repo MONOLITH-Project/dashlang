@@ -6,15 +6,15 @@
 #ifndef _LEXER_H
 #define _LEXER_H
 
+#include "reader.h"
 #include <bits/stdint-uintn.h>
 #include <stddef.h>
 
 typedef struct
 {
-    char *source;
+    reader_t *reader;
     size_t line;
     size_t column;
-    size_t position;
 } lexer_t;
 
 typedef enum {
@@ -70,7 +70,7 @@ typedef struct
     token_type_t type;
 } token_t;
 
-lexer_t lexer_init(char *source);
+lexer_t lexer_init(reader_t *reader);
 token_t lexer_next(lexer_t *lexer);
 token_t lexer_peek(lexer_t *lexer);
 token_t lexer_prev(lexer_t *lexer);

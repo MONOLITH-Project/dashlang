@@ -1,4 +1,5 @@
 #include "lexer_utils.h"
+#include "reader.h"
 #include <lexer.h>
 #include <unity_internals.h>
 
@@ -19,7 +20,8 @@ void tearDown(void)
 
 void lex_empty_string(void)
 {
-    lexer_t lexer = lexer_init("");
+    reader_t reader = reader_from_string("");
+    lexer_t lexer = lexer_init(&reader);
     init_token_list(
         &expected_list,
         (token_t) {
@@ -34,8 +36,9 @@ void lex_empty_string(void)
 
 void lex_keywords(void)
 {
-    lexer_t lexer = lexer_init(
+    reader_t reader = reader_from_string(
         "break continue fall fn for i16 i8 if let return struct switch u16 u8 union");
+    lexer_t lexer = lexer_init(&reader);
     init_token_list(
         &expected_list,
         (token_t) {.value = "break", .type = TOKEN_BREAK, .line = 1, .column = 1},
@@ -60,7 +63,8 @@ void lex_keywords(void)
 
 void lex_unsigned_integers(void)
 {
-    lexer_t lexer = lexer_init("123 456 789");
+    reader_t reader = reader_from_string("123 456 789");
+    lexer_t lexer = lexer_init(&reader);
     init_token_list(
         &expected_list,
         (token_t) {.value = "123", .type = TOKEN_INTEGER, .line = 1, .column = 1},
@@ -73,7 +77,8 @@ void lex_unsigned_integers(void)
 
 void lex_operators(void)
 {
-    lexer_t lexer = lexer_init("+ - * / = == != < > <= >= ! ; : . , ( ) [ ] { }");
+    reader_t reader = reader_from_string("+ - * / = == != < > <= >= ! ; : . , ( ) [ ] { }");
+    lexer_t lexer = lexer_init(&reader);
     init_token_list(
         &expected_list,
         (token_t) {.value = "+", .type = TOKEN_PLUS, .line = 1, .column = 1},
@@ -105,7 +110,8 @@ void lex_operators(void)
 
 void lex_separate_with_operators(void)
 {
-    lexer_t lexer = lexer_init("abc=xyz");
+    reader_t reader = reader_from_string("abc=xyz");
+    lexer_t lexer = lexer_init(&reader);
     init_token_list(
         &expected_list,
         (token_t) {.value = "abc", .type = TOKEN_IDENTIFIER, .line = 1, .column = 1},

@@ -4,13 +4,14 @@
  */
 
 #include <assert.h>
+#include <ctype.h>
 #include <lexer.h>
 #include <stdbool.h>
 #include <string.h>
 
-lexer_t lexer_init(char *source)
+lexer_t lexer_init(reader_t *reader)
 {
-    lexer_t lexer = {.source = source, .position = 0, .line = 1, .column = 1};
+    lexer_t lexer = {.reader = reader, .line = 1, .column = 1};
     return lexer;
 }
 
@@ -62,32 +63,33 @@ static bool _is_separator(char c)
     return c == ' ' || c == '\t' || c == '\n' || c == '\0' || _is_operator(c);
 }
 
-static bool _is_whitespace(char c)
-{
-    return c == ' ' || c == '\t';
-}
-
 static bool _is_identifier_start(char c)
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-static bool _is_digit(char c)
-{
-    return c >= '0' && c <= '9';
-}
-
-#define TOKEN(ttoken, ttype) \
-    (token_t) \
-    { \
-        .type = ttype, .value = ttoken, .line = lexer->line, .column = lexer->column, \
-    }
-
-#define ONECHAR_TOKEN_CASE(ttoken, ttype) \
-    case ttoken: \
-        token = (token_t) {.type = ttype, .line = lexer->line, .column = lexer->column}; \
-        token.value[0] = ttoken; \
+#define SINGLECHAR_CASE(c, t) \
+    case c: \
+        token.type = t; \
+        token.value[0] = c; \
         token.value[1] = '\0'; \
+        return token
+
+#define TWOCHAR_CASE(fchar, schar, fcase, scase) \
+    case fchar: \
+        current = reader_peek(lexer->reader); \
+        if (current == schar) { \
+            reader_next(lexer->reader); \
+            lexer->column++; \
+            token.type = fcase; \
+            token.value[0] = fchar; \
+            token.value[1] = schar; \
+            token.value[2] = '\0'; \
+        } else { \
+            token.type = scase; \
+            token.value[0] = fchar; \
+            token.value[1] = '\0'; \
+        } \
         break
 
 token_t lexer_next(lexer_t *lexer)
@@ -99,94 +101,88 @@ token_t lexer_next(lexer_t *lexer)
         .column = lexer->column,
     };
 
-    if (lexer->source[lexer->position] == '\0')
-        return token;
+    char current;
 
-skip_whitespace:
     /* Skip whitespace */
-    while (_is_whitespace(lexer->source[lexer->position])) {
-        lexer->position++;
-        lexer->column++;
-    }
-
-    /* Handle newlines and EOF */
-    if (lexer->source[lexer->position] == '\n') {
-        lexer->line++;
-        lexer->column = 1;
-        lexer->position++;
-        goto skip_whitespace;
-    } else if (lexer->source[lexer->position] == '\0') {
-        return token;
-    }
-
-    if (_is_identifier_start(lexer->source[lexer->position])) {
-        unsigned int i = 0;
-        for (i = 0; !_is_separator(lexer->source[lexer->position]); i++) {
-            assert(i < sizeof(token.value));
-            token.value[i] = lexer->source[lexer->position];
-            lexer->position++;
+    while (1) {
+        current = reader_next(lexer->reader);
+        if (current == '\n') {
+            lexer->line++;
+            lexer->column = 1;
+        } else if (current == ' ' || current == '\t') {
             lexer->column++;
+        } else if (current == '\0') {
+            return token;
+        } else {
+            break;
+        }
+    }
+
+    token.line = lexer->line;
+    token.column = lexer->column;
+    lexer->column++;
+
+    if (_is_identifier_start(current)) {
+        unsigned int i = 0;
+        token.value[i++] = current;
+
+        char next;
+        while (1) {
+            next = reader_peek(lexer->reader);
+            if (_is_separator(next)) {
+                break;
+            }
+            current = reader_next(lexer->reader);
+            lexer->column++;
+            if (i < sizeof(token.value) - 1) {
+                token.value[i++] = current;
+            } else {
+                break;
+            }
         }
         token.value[i] = '\0';
         token.type = _classify_token(token.value);
-        token.line = lexer->line;
-        token.column = lexer->column - i;
         return token;
-    } else if (_is_digit(lexer->source[lexer->position])) {
+    } else if (isdigit(current)) {
         unsigned int i = 0;
-        for (i = 0; _is_digit(lexer->source[lexer->position]); i++) {
-            assert(i < sizeof(token.value));
-            token.value[i] = lexer->source[lexer->position];
-            lexer->position++;
+        token.value[i++] = current;
+
+        char next;
+        while (isdigit((next = reader_peek(lexer->reader)))) {
+            current = reader_next(lexer->reader);
             lexer->column++;
+            token.value[i++] = current;
         }
         token.value[i] = '\0';
         token.type = TOKEN_INTEGER;
-        token.line = lexer->line;
-        token.column = lexer->column - i;
         return token;
     }
 
-    switch (lexer->source[lexer->position]) {
-        ONECHAR_TOKEN_CASE('+', TOKEN_PLUS);
-        ONECHAR_TOKEN_CASE('-', TOKEN_MINUS);
-        ONECHAR_TOKEN_CASE('*', TOKEN_STAR);
-        ONECHAR_TOKEN_CASE('/', TOKEN_SLASH);
-        ONECHAR_TOKEN_CASE(';', TOKEN_SEMICOLON);
-        ONECHAR_TOKEN_CASE(':', TOKEN_COLON);
-        ONECHAR_TOKEN_CASE('.', TOKEN_DOT);
-        ONECHAR_TOKEN_CASE(',', TOKEN_COMMA);
-        ONECHAR_TOKEN_CASE('(', TOKEN_LEFT_PAREN);
-        ONECHAR_TOKEN_CASE(')', TOKEN_RIGHT_PAREN);
-        ONECHAR_TOKEN_CASE('[', TOKEN_LEFT_BRACKET);
-        ONECHAR_TOKEN_CASE(']', TOKEN_RIGHT_BRACKET);
-        ONECHAR_TOKEN_CASE('{', TOKEN_LEFT_BRACE);
-        ONECHAR_TOKEN_CASE('}', TOKEN_RIGHT_BRACE);
-    case '=':
-        token = lexer->source[lexer->position + 1] == '=' ? TOKEN("==", TOKEN_EQUAL_EQUAL)
-                                                          : TOKEN("=", TOKEN_EQUAL);
-        break;
-    case '!':
-        token = lexer->source[lexer->position + 1] == '=' ? TOKEN("!=", TOKEN_NOT_EQUAL)
-                                                          : TOKEN("!", TOKEN_NOT);
-        break;
-    case '>':
-        token = lexer->source[lexer->position + 1] == '=' ? TOKEN(">=", TOKEN_GREATER_EQUAL)
-                                                          : TOKEN(">", TOKEN_GREATER_THAN);
-        break;
-    case '<':
-        token = lexer->source[lexer->position + 1] == '=' ? TOKEN("<=", TOKEN_LESS_EQUAL)
-                                                          : TOKEN("<", TOKEN_LESS_THAN);
-        break;
+    switch (current) {
+        SINGLECHAR_CASE('+', TOKEN_PLUS);
+        SINGLECHAR_CASE('-', TOKEN_MINUS);
+        SINGLECHAR_CASE('*', TOKEN_STAR);
+        SINGLECHAR_CASE('/', TOKEN_SLASH);
+        SINGLECHAR_CASE(';', TOKEN_SEMICOLON);
+        SINGLECHAR_CASE(':', TOKEN_COLON);
+        SINGLECHAR_CASE('.', TOKEN_DOT);
+        SINGLECHAR_CASE(',', TOKEN_COMMA);
+        SINGLECHAR_CASE('(', TOKEN_LEFT_PAREN);
+        SINGLECHAR_CASE(')', TOKEN_RIGHT_PAREN);
+        SINGLECHAR_CASE('[', TOKEN_LEFT_BRACKET);
+        SINGLECHAR_CASE(']', TOKEN_RIGHT_BRACKET);
+        SINGLECHAR_CASE('{', TOKEN_LEFT_BRACE);
+        SINGLECHAR_CASE('}', TOKEN_RIGHT_BRACE);
+        TWOCHAR_CASE('=', '=', TOKEN_EQUAL_EQUAL, TOKEN_EQUAL);
+        TWOCHAR_CASE('!', '=', TOKEN_NOT_EQUAL, TOKEN_NOT);
+        TWOCHAR_CASE('>', '=', TOKEN_GREATER_EQUAL, TOKEN_GREATER_THAN);
+        TWOCHAR_CASE('<', '=', TOKEN_LESS_EQUAL, TOKEN_LESS_THAN);
     default:
-        token = (token_t) {.type = TOKEN_INVALID, .line = lexer->line, .column = lexer->column};
-        token.value[0] = lexer->source[lexer->position];
+        token.type = TOKEN_INVALID;
+        token.value[0] = current;
         token.value[1] = '\0';
         break;
     }
-
-    lexer->position += strlen(token.value);
-    lexer->column += strlen(token.value);
 
     return token;
 }
