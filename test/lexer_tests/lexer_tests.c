@@ -122,6 +122,18 @@ void lex_separate_with_operators(void)
     COMPARE_TOKEN_LISTS(expected_list, actual_list);
 }
 
+void lex_ignore_comments(void)
+{
+    reader_t reader = reader_from_string("// This is a comment\nx");
+    lexer_t lexer = lexer_init(&reader);
+    init_token_list(
+        &expected_list,
+        (token_t) {.value = "x", .type = TOKEN_IDENTIFIER, .line = 2, .column = 1},
+        (token_t) {.value = "", .type = TOKEN_EOF, .line = 2, .column = 2});
+    lex_all(&lexer, &actual_list);
+    COMPARE_TOKEN_LISTS(expected_list, actual_list);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -130,6 +142,7 @@ int main(void)
     RUN_TEST(lex_unsigned_integers);
     RUN_TEST(lex_operators);
     RUN_TEST(lex_separate_with_operators);
+    RUN_TEST(lex_ignore_comments);
     destroy_token_list(&actual_list);
     destroy_token_list(&expected_list);
     return UNITY_END();

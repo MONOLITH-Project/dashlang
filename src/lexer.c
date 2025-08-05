@@ -105,6 +105,7 @@ token_t lexer_next(lexer_t *lexer)
 
     /* Skip whitespace */
     while (1) {
+    loop_start:
         current = reader_next(lexer->reader);
         if (current == '\n') {
             lexer->line++;
@@ -162,7 +163,6 @@ token_t lexer_next(lexer_t *lexer)
         SINGLECHAR_CASE('+', TOKEN_PLUS);
         SINGLECHAR_CASE('-', TOKEN_MINUS);
         SINGLECHAR_CASE('*', TOKEN_STAR);
-        SINGLECHAR_CASE('/', TOKEN_SLASH);
         SINGLECHAR_CASE(';', TOKEN_SEMICOLON);
         SINGLECHAR_CASE(':', TOKEN_COLON);
         SINGLECHAR_CASE('.', TOKEN_DOT);
@@ -177,6 +177,20 @@ token_t lexer_next(lexer_t *lexer)
         TWOCHAR_CASE('!', '=', TOKEN_NOT_EQUAL, TOKEN_NOT);
         TWOCHAR_CASE('>', '=', TOKEN_GREATER_EQUAL, TOKEN_GREATER_THAN);
         TWOCHAR_CASE('<', '=', TOKEN_LESS_EQUAL, TOKEN_LESS_THAN);
+    case '/':
+        if (reader_peek(lexer->reader) == '/') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            while (reader_peek(lexer->reader) != '\n' && reader_peek(lexer->reader) != '\0') {
+                reader_next(lexer->reader);
+                lexer->column++;
+            }
+            goto loop_start;
+        }
+        token.type = TOKEN_SLASH;
+        token.value[0] = current;
+        token.value[1] = '\0';
+        break;
     default:
         token.type = TOKEN_INVALID;
         token.value[0] = current;
