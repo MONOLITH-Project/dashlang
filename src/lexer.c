@@ -23,39 +23,73 @@ static token_type_t _classify_token(char *token)
         return TOKEN_CONTINUE;
     else if (!strcmp(token, "fall"))
         return TOKEN_FALL;
-    else if (!strcmp(token, "fn"))
-        return TOKEN_FN;
     else if (!strcmp(token, "for"))
         return TOKEN_FOR;
+    else if (!strcmp(token, "function"))
+        return TOKEN_FUNCTION;
     else if (!strcmp(token, "i16"))
         return TOKEN_I16;
+    else if (!strcmp(token, "i32"))
+        return TOKEN_I32;
+    else if (!strcmp(token, "i64"))
+        return TOKEN_I64;
     else if (!strcmp(token, "i8"))
         return TOKEN_I8;
     else if (!strcmp(token, "if"))
         return TOKEN_IF;
+    else if (!strcmp(token, "impl"))
+        return TOKEN_IMPL;
+    else if (!strcmp(token, "interface"))
+        return TOKEN_INTERFACE;
     else if (!strcmp(token, "let"))
         return TOKEN_LET;
     else if (!strcmp(token, "return"))
         return TOKEN_RETURN;
-    else if (!strcmp(token, "struct"))
-        return TOKEN_STRUCT;
+    else if (!strcmp(token, "class"))
+        return TOKEN_CLASS;
+    else if (!strcmp(token, "enum"))
+        return TOKEN_ENUM;
     else if (!strcmp(token, "switch"))
         return TOKEN_SWITCH;
+    else if (!strcmp(token, "type"))
+        return TOKEN_TYPE;
+    else if (!strcmp(token, "bool"))
+        return TOKEN_BOOL;
+    else if (!strcmp(token, "default"))
+        return TOKEN_DEFAULT;
+    else if (!strcmp(token, "else"))
+        return TOKEN_ELSE;
+    else if (!strcmp(token, "int"))
+        return TOKEN_INT;
+    else if (!strcmp(token, "skip"))
+        return TOKEN_SKIP;
+    else if (!strcmp(token, "string"))
+        return TOKEN_STRING;
+    else if (!strcmp(token, "uint"))
+        return TOKEN_UINT;
+    else if (!strcmp(token, "null"))
+        return TOKEN_NULL;
     else if (!strcmp(token, "u16"))
         return TOKEN_U16;
+    else if (!strcmp(token, "u32"))
+        return TOKEN_U32;
+    else if (!strcmp(token, "u64"))
+        return TOKEN_U64;
     else if (!strcmp(token, "u8"))
         return TOKEN_U8;
-    else if (!strcmp(token, "union"))
-        return TOKEN_UNION;
+    else if (!strcmp(token, "f32"))
+        return TOKEN_F32;
+    else if (!strcmp(token, "f64"))
+        return TOKEN_F64;
 
     return TOKEN_IDENTIFIER;
 }
 
 static bool _is_operator(char c)
 {
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '!' || c == '<'
-           || c == '>' || c == '.' || c == '!' || c == ';' || c == ':' || c == ',' || c == '('
-           || c == ')' || c == '{' || c == '}' || c == '[' || c == ']';
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '!'
+           || c == '<' || c == '>' || c == '.' || c == '!' || c == ';' || c == ':' || c == ','
+           || c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']';
 }
 
 static bool _is_separator(char c)
@@ -160,11 +194,60 @@ token_t lexer_next(lexer_t *lexer)
     }
 
     switch (current) {
-        SINGLECHAR_CASE('+', TOKEN_PLUS);
-        SINGLECHAR_CASE('-', TOKEN_MINUS);
-        SINGLECHAR_CASE('*', TOKEN_STAR);
+    case '+':
+        current = reader_peek(lexer->reader);
+        if (current == '=') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            token.type = TOKEN_PLUS_EQUAL;
+            token.value[0] = '+';
+            token.value[1] = '=';
+            token.value[2] = '\0';
+        } else {
+            token.type = TOKEN_PLUS;
+            token.value[0] = '+';
+            token.value[1] = '\0';
+        }
+        break;
+    case '-':
+        current = reader_peek(lexer->reader);
+        if (current == '>') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            token.type = TOKEN_ARROW;
+            token.value[0] = '-';
+            token.value[1] = '>';
+            token.value[2] = '\0';
+        } else if (current == '=') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            token.type = TOKEN_MINUS_EQUAL;
+            token.value[0] = '-';
+            token.value[1] = '=';
+            token.value[2] = '\0';
+        } else {
+            token.type = TOKEN_MINUS;
+            token.value[0] = '-';
+            token.value[1] = '\0';
+        }
+        break;
+    case '*':
+        current = reader_peek(lexer->reader);
+        if (current == '=') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            token.type = TOKEN_STAR_EQUAL;
+            token.value[0] = '*';
+            token.value[1] = '=';
+            token.value[2] = '\0';
+        } else {
+            token.type = TOKEN_STAR;
+            token.value[0] = '*';
+            token.value[1] = '\0';
+        }
+        break;
         SINGLECHAR_CASE(';', TOKEN_SEMICOLON);
-        SINGLECHAR_CASE(':', TOKEN_COLON);
+        TWOCHAR_CASE(':', ':', TOKEN_DOUBLE_COLON, TOKEN_COLON);
         SINGLECHAR_CASE('.', TOKEN_DOT);
         SINGLECHAR_CASE(',', TOKEN_COMMA);
         SINGLECHAR_CASE('(', TOKEN_LEFT_PAREN);
@@ -177,8 +260,18 @@ token_t lexer_next(lexer_t *lexer)
         TWOCHAR_CASE('!', '=', TOKEN_NOT_EQUAL, TOKEN_NOT);
         TWOCHAR_CASE('>', '=', TOKEN_GREATER_EQUAL, TOKEN_GREATER_THAN);
         TWOCHAR_CASE('<', '=', TOKEN_LESS_EQUAL, TOKEN_LESS_THAN);
+        TWOCHAR_CASE('&', '&', TOKEN_AND, TOKEN_INVALID);
+        TWOCHAR_CASE('|', '|', TOKEN_OR, TOKEN_INVALID);
     case '/':
-        if (reader_peek(lexer->reader) == '/') {
+        current = reader_peek(lexer->reader);
+        if (current == '=') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            token.type = TOKEN_SLASH_EQUAL;
+            token.value[0] = '/';
+            token.value[1] = '=';
+            token.value[2] = '\0';
+        } else if (current == '/') {
             reader_next(lexer->reader);
             lexer->column++;
             while (reader_peek(lexer->reader) != '\n' && reader_peek(lexer->reader) != '\0') {
@@ -186,10 +279,26 @@ token_t lexer_next(lexer_t *lexer)
                 lexer->column++;
             }
             goto loop_start;
+        } else {
+            token.type = TOKEN_SLASH;
+            token.value[0] = '/';
+            token.value[1] = '\0';
         }
-        token.type = TOKEN_SLASH;
-        token.value[0] = current;
-        token.value[1] = '\0';
+        break;
+    case '%':
+        current = reader_peek(lexer->reader);
+        if (current == '=') {
+            reader_next(lexer->reader);
+            lexer->column++;
+            token.type = TOKEN_PERCENT_EQUAL;
+            token.value[0] = '%';
+            token.value[1] = '=';
+            token.value[2] = '\0';
+        } else {
+            token.type = TOKEN_PERCENT;
+            token.value[0] = '%';
+            token.value[1] = '\0';
+        }
         break;
     default:
         token.type = TOKEN_INVALID;
