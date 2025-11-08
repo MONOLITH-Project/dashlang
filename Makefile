@@ -31,6 +31,10 @@ EMITTER_TEST_SRC := $(wildcard $(TEST_DIR)/emitter_tests/*.c)
 EMITTER_TEST_OBJ := $(patsubst $(TEST_DIR)/emitter_tests/%.c, $(TEST_OBJ_DIR)/emitter_tests/%.o, $(EMITTER_TEST_SRC))
 EMITTER_TEST_BIN := $(TEST_BIN_DIR)/emitter_tests
 
+ARENA_TEST_SRC := $(wildcard $(TEST_DIR)/arena_tests/*.c) libs/Unity/src/unity.c
+ARENA_TEST_OBJ := $(patsubst $(TEST_DIR)/arena_tests/%.c, $(TEST_OBJ_DIR)/arena_tests/%.o, $(ARENA_TEST_SRC))
+ARENA_TEST_BIN := $(TEST_BIN_DIR)/arena_tests
+
 # Output binary
 TARGET := $(BIN_DIR)/dash
 
@@ -42,7 +46,7 @@ all: release
 
 # Create necessary directories
 dirs:
-	@mkdir -p $(BIN_DIR) $(OBJ_DIR) $(TEST_BIN_DIR) $(TEST_OBJ_DIR) $(TEST_OBJ_DIR)/lexer_tests $(TEST_OBJ_DIR)/emitter_tests
+	@mkdir -p $(BIN_DIR) $(OBJ_DIR) $(TEST_BIN_DIR) $(TEST_OBJ_DIR) $(TEST_OBJ_DIR)/lexer_tests $(TEST_OBJ_DIR)/emitter_tests $(TEST_OBJ_DIR)/arena_tests
 
 # Debug build
 debug: CFLAGS += $(DEBUG_FLAGS)
@@ -69,7 +73,7 @@ $(MAIN_OBJ): main.c
 	@$(CC) $(CFLAGS) $(INCLUDE_DIRS) -c $< -o $@
 
 # Test targets
-test: test_lexer test_emitter
+test: test_lexer test_emitter test_arena
 	@echo "All tests completed."
 
 test_lexer: dirs $(LEXER_TEST_BIN)
@@ -79,6 +83,10 @@ test_lexer: dirs $(LEXER_TEST_BIN)
 test_emitter: dirs $(EMITTER_TEST_BIN)
 	@echo "Running emitter tests..."
 	@if [ -x "$(EMITTER_TEST_BIN)" ]; then $(EMITTER_TEST_BIN); else echo "No emitter tests to run"; fi
+
+test_arena: dirs $(ARENA_TEST_BIN)
+	@echo "Running arena tests..."
+	@$(ARENA_TEST_BIN)
 
 # Build lexer tests
 $(LEXER_TEST_BIN): $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(LEXER_TEST_OBJ)
@@ -90,6 +98,11 @@ $(EMITTER_TEST_BIN): $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(EMITTER_TES
 	@echo "Linking emitter tests..."
 	@if [ -n "$(EMITTER_TEST_OBJ)" ]; then $(CC) $(TEST_CFLAGS) $^ -o $@; fi
 
+# Build arena tests
+$(ARENA_TEST_BIN): $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(ARENA_TEST_OBJ)
+	@echo "Linking arena tests..."
+	@$(CC) $(TEST_CFLAGS) $^ -o $@
+
 # Compile lexer test files
 $(TEST_OBJ_DIR)/lexer_tests/%.o: $(TEST_DIR)/lexer_tests/%.c
 	@echo "Compiling test $<..."
@@ -97,6 +110,10 @@ $(TEST_OBJ_DIR)/lexer_tests/%.o: $(TEST_DIR)/lexer_tests/%.c
 
 # Compile emitter test files
 $(TEST_OBJ_DIR)/emitter_tests/%.o: $(TEST_DIR)/emitter_tests/%.c
+	@$(CC) $(TEST_CFLAGS) $(INCLUDE_DIRS) $(TEST_INCLUDE_DIRS) -c $< -o $@
+
+# Compile arena test files
+$(TEST_OBJ_DIR)/arena_tests/%.o: $(TEST_DIR)/arena_tests/%.c
 	@echo "Compiling test $<..."
 	@$(CC) $(TEST_CFLAGS) $(INCLUDE_DIRS) $(TEST_INCLUDE_DIRS) -c $< -o $@
 
@@ -117,5 +134,6 @@ help:
 	@echo "  test       - Build and run all tests"
 	@echo "  test_lexer - Build and run lexer tests only"
 	@echo "  test_emitter - Build and run emitter tests only"
+	@echo "  test_arena  - Build and run arena tests only"
 	@echo "  clean      - Remove all build artifacts"
 	@echo "  help       - Display this help message"
